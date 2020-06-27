@@ -20,7 +20,7 @@ RUN git clone https://github.com/YosysHQ/nextpnr.git /nextpnr
 WORKDIR /nextpnr/
 
 RUN cmake -DARCH=ecp5 -DBUILD_HEAP=OFF -DBUILD_GUI=OFF -DTRELLIS_LIBDIR=/opt/prjtrellis/lib64/trellis -DTRELLIS_INSTALL_PREFIX=/opt/prjtrellis -DCMAKE_INSTALL_PREFIX=/opt/nextpnr .
-RUN make
+RUN make -j$(nproc)
 RUN make install
 
 FROM alpine:3.12.0
