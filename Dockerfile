@@ -13,7 +13,6 @@ RUN apk add --no-cache --virtual build-dependencies \
     git \
     build-base \
     cmake \
-    eigen-dev \
     python3-dev \
     boost-dev
 
