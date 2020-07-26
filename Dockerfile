@@ -27,7 +27,7 @@ RUN make install
 
 FROM alpine:3.12.0
 
-RUN apk add --no-cache --virtual build-dependencies \
+RUN apk add --no-cache --virtual runtime-dependencies \
     --repository http://dl-cdn.alpinelinux.org/alpine/edge/main \
     boost
 
