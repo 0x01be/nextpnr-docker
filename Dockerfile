@@ -37,8 +37,6 @@ FROM alpine:3.12.0
 
 RUN apk add --no-cache --virtual runtime-dependencies \
     --repository http://dl-cdn.alpinelinux.org/alpine/edge/main \
-    --repository http://dl-cdn.alpinelinux.org/alpine/edge/community \
-    --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing \
     boost
 
 COPY --from=builder /opt/nextpnr/ /opt/nextpnr/
