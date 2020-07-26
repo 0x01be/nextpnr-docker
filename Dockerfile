@@ -6,7 +6,10 @@ COPY --from=icestorm /opt/icestorm/ /opt/icestorm/
 
 ENV PATH $PATH:/opt/icestorm/bin/
 
-RUN apk --no-cache add --virtual build-dependencies \
+RUN apk add --no-cache --virtual build-dependencies \
+    --repository http://dl-cdn.alpinelinux.org/alpine/edge/main \
+    --repository http://dl-cdn.alpinelinux.org/alpine/edge/community \
+    --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing \
     git \
     build-base \
     cmake \
