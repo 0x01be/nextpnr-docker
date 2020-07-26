@@ -11,11 +11,10 @@ RUN apk --no-cache add --virtual build-dependencies \
     cmake \
     git \
     python3 \
-    eigen-dev \
     python3-dev \
     boost-dev
 
-RUN git clone https://gitlab.com/libeigen/eigen.git /eigen
+RUN git clone --depth 1 https://gitlab.com/libeigen/eigen.git /eigen
 
 RUN mkdir /eigen/build/
 WORKDIR /eigen/build/
@@ -24,7 +23,7 @@ RUN cmake ..
 RUN make
 RUN make install
 
-RUN git clone https://github.com/YosysHQ/nextpnr.git /nextpnr
+RUN git clone --depth 1 https://github.com/YosysHQ/nextpnr.git /nextpnr
 
 WORKDIR /nextpnr/
 
