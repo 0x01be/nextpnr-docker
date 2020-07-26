@@ -17,7 +17,7 @@ RUN apk add --no-cache --virtual build-dependencies \
     python3-dev \
     boost-dev
 
-RUN git --depth 1 clone https://github.com/YosysHQ/nextpnr.git /nextpnr
+RUN git clone --depth 1 https://github.com/YosysHQ/nextpnr.git /nextpnr
 
 WORKDIR /nextpnr
 
