@@ -1,15 +1,12 @@
 FROM 0x01be/prjtrellis as prjtrellis
 
-FROM alpine:3.12.0 as builder
+FROM 0x01be/alpine:edge as builder
 
 COPY --from=prjtrellis /opt/prjtrellis/ /opt/prjtrellis/
 
-ENV PATH $PATH:/opt/icestorm/bin/:/opt/prjtrellis/bin/
+ENV PATH $PATH:/opt/prjtrellis/bin/
 
-RUN apk add --no-cache --virtual build-dependencies \
-    --repository http://dl-cdn.alpinelinux.org/alpine/edge/main \
-    --repository http://dl-cdn.alpinelinux.org/alpine/edge/community \
-    --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing \
+RUN apk add --no-cache --virtual nextpnr-build-dependencies \
     git \
     build-base \
     cmake \
@@ -33,10 +30,9 @@ RUN cmake -DARCH=ecp5 -DBUILD_HEAP=ON -DBUILD_GUI=OFF -DTRELLIS_LIBDIR=/opt/prjt
 RUN make -j$(nproc)
 RUN make install
 
-FROM alpine:3.12.0
+FROM 0x01be/alpine:edge
 
-RUN apk add --no-cache --virtual runtime-dependencies \
-    --repository http://dl-cdn.alpinelinux.org/alpine/edge/main \
+RUN apk add --no-cache --virtual nextpnr-runtime-dependencies \
     boost
 
 COPY --from=builder /opt/nextpnr/ /opt/nextpnr/
