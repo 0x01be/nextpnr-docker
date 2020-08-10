@@ -1,6 +1,6 @@
 FROM 0x01be/icestorm as icestorm
 
-FROM 0x01be/alpine:edge as builder
+FROM alpine as builder
 
 COPY --from=icestorm /opt/icestorm/ /opt/icestorm/
 
@@ -21,7 +21,7 @@ RUN cmake -DARCH=ice40 -DBUILD_HEAP=OFF -DBUILD_GUI=OFF -DICESTORM_INSTALL_PREFI
 RUN make -j$(nproc)
 RUN make install
 
-FROM 0x01be/alpine:edge
+FROM alpine
 
 RUN apk add --no-cache --virtual nextpnr-runtime-dependencies \
     boost
