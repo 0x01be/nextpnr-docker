@@ -30,3 +30,5 @@ COPY --from=builder /opt/nextpnr/ /opt/nextpnr/
 
 ENV PATH $PATH:/opt/nextpnr/bin/
 
+WORKDIR /workspace
+
