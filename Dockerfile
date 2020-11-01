@@ -1,10 +1,7 @@
 FROM 0x01be/prjtrellis as prjtrellis
+FROM 0x01be/eigen as eigen
 
-FROM alpine as builder
-
-COPY --from=prjtrellis /opt/prjtrellis/ /opt/prjtrellis/
-
-ENV PATH $PATH:/opt/prjtrellis/bin/
+FROM alpine as build
 
 RUN apk add --no-cache --virtual nextpnr-build-dependencies \
     git \
@@ -13,20 +10,23 @@ RUN apk add --no-cache --virtual nextpnr-build-dependencies \
     python3-dev \
     boost-dev
 
-RUN git clone --depth 1 https://gitlab.com/libeigen/eigen.git /eigen
+COPY --from=prjtrellis /opt/prjtrellis/ /opt/prjtrellis/
+COPY --from=eigen /opt/eigen/include/* /usr/include/
+ENV PATH ${PATH}:/opt/prjtrellis/bin/
 
-RUN mkdir /eigen/build
-WORKDIR /eigen/build
+ENV REVISION master
+RUN git clone --depth 1 --branch ${REVISION} https://github.com/YosysHQ/nextpnr.git /nextpnr
 
-RUN cmake ..
-RUN make -j$(nproc)
-RUN make install
+WORKDIR /nextpnr/build
 
-RUN git clone --depth 1 https://github.com/YosysHQ/nextpnr.git /nextpnr
-
-WORKDIR /nextpnr
-
-RUN cmake -DARCH=ecp5 -DBUILD_HEAP=ON -DBUILD_GUI=OFF -DTRELLIS_LIBDIR=/opt/prjtrellis/lib64/trellis -DTRELLIS_INSTALL_PREFIX=/opt/prjtrellis -DCMAKE_INSTALL_PREFIX=/opt/nextpnr .
+RUN cmake \
+    -DARCH=ecp5 \
+    -DBUILD_HEAP=ON \
+    -DBUILD_GUI=OFF \
+    -DTRELLIS_LIBDIR=/opt/prjtrellis/lib64/trellis \
+    -DTRELLIS_INSTALL_PREFIX=/opt/prjtrellis \
+    -DCMAKE_INSTALL_PREFIX=/opt/nextpnr \
+    ..
 RUN make -j$(nproc)
 RUN make install
 
@@ -35,9 +35,13 @@ FROM alpine
 RUN apk add --no-cache --virtual nextpnr-runtime-dependencies \
     boost
 
-COPY --from=builder /opt/nextpnr/ /opt/nextpnr/
+COPY --from=build /opt/nextpnr/ /opt/nextpnr/
+
+WORKDIR /workspace
+RUN adduser -D -u 1000 nextpnr && chown nextpnr:nextpnr /workspace
+
+USER nextpnr
 
 ENV PATH $PATH:/opt/nextpnr/bin/
 
-WORKDIR /workspace
 
