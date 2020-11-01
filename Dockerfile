@@ -1,10 +1,6 @@
 FROM 0x01be/icestorm as icestorm
 
-FROM alpine as builder
-
-COPY --from=icestorm /opt/icestorm/ /opt/icestorm/
-
-ENV PATH $PATH:/opt/icestorm/bin/
+FROM alpine as build
 
 RUN apk add --no-cache --virtual nextpnr-build-dependencies \
     git \
@@ -13,11 +9,21 @@ RUN apk add --no-cache --virtual nextpnr-build-dependencies \
     python3-dev \
     boost-dev
 
-RUN git clone --depth 1 https://github.com/YosysHQ/nextpnr.git /nextpnr
+COPY --from=icestorm /opt/icestorm/ /opt/icestorm/
+ENV PATH $PATH:/opt/icestorm/bin/
 
-WORKDIR /nextpnr
+ENV REVISION master
+RUN git clone --depth 1 --branch ${REVISION} https://github.com/YosysHQ/nextpnr.git /nextpnr
 
-RUN cmake -DARCH=ice40 -DBUILD_HEAP=OFF -DBUILD_GUI=OFF -DICESTORM_INSTALL_PREFIX=/opt/icestorm -DCMAKE_INSTALL_PREFIX=/opt/nextpnr .
+WORKDIR /nextpnr/build
+
+RUN cmake \
+    -DARCH=ice40 \
+    -DBUILD_HEAP=OFF \
+    -DBUILD_GUI=OFF \
+    -DICESTORM_INSTALL_PREFIX=/opt/icestorm \
+    -DCMAKE_INSTALL_PREFIX=/opt/nextpnr \
+    ..
 RUN make -j$(nproc)
 RUN make install
 
@@ -26,9 +32,14 @@ FROM alpine
 RUN apk add --no-cache --virtual nextpnr-runtime-dependencies \
     boost
 
-COPY --from=builder /opt/nextpnr/ /opt/nextpnr/
+COPY --from=build /opt/nextpnr/ /opt/nextpnr/
 
-ENV PATH $PATH:/opt/nextpnr/bin/
+RUN adduser -D -u 1000 nextpnr
 
 WORKDIR /workspace
+RUN chown nextpnr:nextpnr /workspace
+
+USER nextpnr
+
+ENV PATH $PATH:/opt/nextpnr/bin/
 
