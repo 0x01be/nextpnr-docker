@@ -41,7 +41,5 @@ WORKDIR /workspace
 RUN adduser -D -u 1000 nextpnr && chown nextpnr:nextpnr /workspace
 
 USER nextpnr
-
 ENV PATH $PATH:/opt/nextpnr/bin/
-
 
