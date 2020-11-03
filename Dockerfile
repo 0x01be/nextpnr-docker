@@ -1,3 +1,4 @@
+FROM 0x01be/icestorm as icestorm
 FROM 0x01be/prjtrellis as prjtrellis
 FROM 0x01be/eigen as eigen
 
@@ -10,41 +11,37 @@ RUN apk add --no-cache --virtual nextpnr-build-dependencies \
     python3-dev \
     boost-dev
 
+COPY --from=icestorm /opt/icestorm/ /opt/icestorm/
 COPY --from=prjtrellis /opt/prjtrellis/ /opt/prjtrellis/
 COPY --from=eigen /opt/eigen/ /opt/eigen/
-ENV PATH ${PATH}:/opt/prjtrellis/bin/
+ENV PATH ${PATH}:/opt/prjtrellis/bin/:/opt/icestorm/bin/
 
 ENV REVISION master
 RUN git clone --depth 1 --branch ${REVISION} https://github.com/YosysHQ/nextpnr.git /nextpnr
 
 WORKDIR /nextpnr/build
 
-ENV CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}:/opt/eigen/:/opt/prjtrellis/
+ENV CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}:/opt/eigen/:/opt/prjtrellis/:/opt/icestorm/
 RUN cmake \
-    -DARCH=ecp5 \
+    -DARCH="ice40;ecp5" \
     -DBUILD_HEAP=ON \
-    -DBUILD_GUI=OFF \
+    -DBUILD_GUI=ON \
     -DTRELLIS_LIBDIR=/opt/prjtrellis/lib64/trellis \
     -DTRELLIS_INSTALL_PREFIX=/opt/prjtrellis \
+    -DICESTORM_INSTALL_PREFIX=/opt/icestorm \
     -DCMAKE_INSTALL_PREFIX=/opt/nextpnr \
     ..
 RUN make -j$(nproc)
 RUN make install
 
-FROM alpine
+FROM 0x01be/xpra
 
 RUN apk add --no-cache --virtual nextpnr-runtime-dependencies \
     boost
 
+COPY --from=build /opt/icestorm/ /opt/icestorm/
 COPY --from=build /opt/nextpnr/ /opt/nextpnr/
 
-ENV USER=nextpnr \
-    WORKSPACE=/workspace
-RUN adduser -D -u 1000 ${USER} &&\
-    mkdir -p ${WORKSPACE} &&\
-    chown -R ${USER}:${USER} ${WORKSPACE}
-
 USER ${USER}
-WORKDIR ${WORKSPACE}
-ENV PATH $PATH:/opt/nextpnr/bin/
+ENV PATH ${PATH}:/opt/prjtrellis/bin/:/opt/nextpnr/bin/:/opt/icestorm/bin/
 
