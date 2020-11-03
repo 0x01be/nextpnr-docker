@@ -11,7 +11,7 @@ RUN apk add --no-cache --virtual nextpnr-build-dependencies \
     boost-dev
 
 COPY --from=prjtrellis /opt/prjtrellis/ /opt/prjtrellis/
-COPY --from=eigen /opt/eigen/include/* /usr/include/
+COPY --from=eigen /opt/eigen/ /opt/eigen/
 ENV PATH ${PATH}:/opt/prjtrellis/bin/
 
 ENV REVISION master
@@ -19,6 +19,7 @@ RUN git clone --depth 1 --branch ${REVISION} https://github.com/YosysHQ/nextpnr.
 
 WORKDIR /nextpnr/build
 
+ENV CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}:/opt/eigen/:/opt/prjtrellis/
 RUN cmake \
     -DARCH=ecp5 \
     -DBUILD_HEAP=ON \
@@ -37,9 +38,13 @@ RUN apk add --no-cache --virtual nextpnr-runtime-dependencies \
 
 COPY --from=build /opt/nextpnr/ /opt/nextpnr/
 
-WORKDIR /workspace
-RUN adduser -D -u 1000 nextpnr && chown nextpnr:nextpnr /workspace
+ENV USER=nextpnr \
+    WORKSPACE=/workspace
+RUN adduser -D -u 1000 ${USER} &&\
+    mkdir -p ${WORKSPACE} &&\
+    chown -R ${USER}:${USER} ${WORKSPACE}
 
-USER nextpnr
+USER ${USER}
+WORKDIR ${WORKSPACE}
 ENV PATH $PATH:/opt/nextpnr/bin/
 
