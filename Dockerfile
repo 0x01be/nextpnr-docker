@@ -9,7 +9,10 @@ RUN apk add --no-cache --virtual nextpnr-build-dependencies \
     build-base \
     cmake \
     python3-dev \
-    boost-dev
+    boost-dev \
+    qt5-qtbase-dev \
+    qt5-qttools-dev \
+    qt5-qtsvg-dev
 
 COPY --from=icestorm /opt/icestorm/ /opt/icestorm/
 COPY --from=prjtrellis /opt/prjtrellis/ /opt/prjtrellis/
@@ -37,11 +40,17 @@ RUN make install
 FROM 0x01be/xpra
 
 RUN apk add --no-cache --virtual nextpnr-runtime-dependencies \
-    boost
+    boost \
+    qt5-qtbase \
+    qt5-qttools \
+    qt5-qtsvg \
+    mesa-gl \
+    mesa-dri-swrast
 
 COPY --from=build /opt/icestorm/ /opt/icestorm/
 COPY --from=build /opt/nextpnr/ /opt/nextpnr/
 
 USER ${USER}
-ENV PATH ${PATH}:/opt/prjtrellis/bin/:/opt/nextpnr/bin/:/opt/icestorm/bin/
+ENV PATH=${PATH}:/opt/prjtrellis/bin/:/opt/nextpnr/bin/:/opt/icestorm/bin/ \
+    COMMAND="nextpnr-ecp5 --gui"
 
