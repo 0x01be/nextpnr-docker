@@ -27,7 +27,7 @@ WORKDIR /nextpnr/build
 
 ENV CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}:/opt/eigen/:/opt/prjtrellis/:/opt/icestorm/
 RUN cmake \
-    -DARCH="ice40;ecp5" \
+    -DARCH=all \
     -DBUILD_HEAP=ON \
     -DBUILD_GUI=ON \
     -DTRELLIS_LIBDIR=/opt/prjtrellis/lib64/trellis \
@@ -56,5 +56,5 @@ RUN chown -R ${USER}:${USER} ${WORKSPACE}
 
 USER ${USER}
 ENV PATH=${PATH}:/opt/prjtrellis/bin/:/opt/nextpnr/bin/:/opt/icestorm/bin/ \
-    COMMAND="nextpnr-ecp5 --gui --json ${WORKSPACE}/lol/top.json"
+    COMMAND="nextpnr-ecp5 --gui --json ${WORKSPACE}/lol/top.json --um5g-85k --package CABGA381 --lpf ${WORKSPACE}/lol/top.lpf --lpf-allow-unconstrained"
 
