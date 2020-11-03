@@ -1,6 +1,7 @@
 FROM 0x01be/icestorm as icestorm
 FROM 0x01be/prjtrellis as prjtrellis
 FROM 0x01be/eigen as eigen
+FROM 0x01be/lol as lol
 
 FROM alpine as build
 
@@ -49,8 +50,11 @@ RUN apk add --no-cache --virtual nextpnr-runtime-dependencies \
 
 COPY --from=build /opt/icestorm/ /opt/icestorm/
 COPY --from=build /opt/nextpnr/ /opt/nextpnr/
+COPY --from=lol /linux-on-litex-vexriscv/build/versa_ecp5/gateware/ ${WORKSPACE}/lol
+
+RUN chown -R ${USER}:${USER} ${WORKSPACE}
 
 USER ${USER}
 ENV PATH=${PATH}:/opt/prjtrellis/bin/:/opt/nextpnr/bin/:/opt/icestorm/bin/ \
-    COMMAND="nextpnr-ecp5 --gui"
+    COMMAND="nextpnr-ecp5 --gui --json ${WORKSPACE}/lol/top.json"
 
